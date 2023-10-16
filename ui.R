@@ -13,7 +13,7 @@ ui <- fluidPage(
              id = 'close',
              type = "button",
              class = "btn action-button",
-             onclick = "function(){window.close();};",  # close browser
+             onclick = "setTimeout(function(){window.close();});",  # close browser
              "Close window"
            )
     )
