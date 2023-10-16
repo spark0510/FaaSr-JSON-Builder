@@ -9,7 +9,13 @@ ui <- fluidPage(
     # put an exit button on the right corner.
     column(6, align = "right",
            div(style = "height: 20px;"),
-           actionButton("exit", "Exit")
+           tags$button(
+             id = 'close',
+             type = "button",
+             class = "btn action-button",
+             onclick = "function(){window.close();};",  # close browser
+             "Close window"
+           )
     )
   ),
   fluidRow(
@@ -46,7 +52,7 @@ ui <- fluidPage(
       # show the diagrams.
       fluidRow(
         column(12, grVizOutput("fsm_func", height="50%", width="100%"),
-               br())
+               br()),
       ),
       fluidRow(
         column(6, grVizOutput("fsm_data", height="10%", width="70%")),
