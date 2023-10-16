@@ -45,12 +45,12 @@ ui <- fluidPage(
     ), wellPanel(
       # show the diagrams.
       fluidRow(
-        column(12, grVizOutput("fsm_func", height="245px"),
+        column(12, grVizOutput("fsm_func", height="50%", width="100%"),
                br())
       ),
       fluidRow(
-        column(6, grVizOutput("fsm_data", height="140px")),
-        column(6, grVizOutput("fsm_faas", height="140px"))
+        column(6, grVizOutput("fsm_data", height="10%", width="70%")),
+        column(6, grVizOutput("fsm_faas", height="10%", width="70%"))
       )
     )
     )
