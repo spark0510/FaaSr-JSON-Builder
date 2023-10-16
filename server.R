@@ -114,7 +114,7 @@ server <- function(input, output) {
     return(
       list(
         selectInput("func_faas", "Function FaaS Server:", names(json$ComputeServers), selected = json$FunctionList[[input$func_name]]$FaaSServer),
-        textAreaInput("func_args", "Function Arguments:", value = unretrieve(json$FunctionList[[input$func_name]]$Arguments), placeholder = "arg1=input1.csv,\narg2:input2.csv", height = "100px", resize = "vertical"),
+        textAreaInput("func_args", "Function Arguments:", value = unretrieve(json$FunctionList[[input$func_name]]$Arguments), placeholder = "arg1=input1.csv,\narg2=input2.csv", height = "100px", resize = "vertical"),
         textInput("func_next", "Function Next Invoke:", value = unretrieve(json$FunctionList[[input$func_name]]$InvokeNext), placeholder = "F2, F3"),
         textInput("func_container", "Function's Action Container(Optional):", value= json$ActionContainers[[input$func_act]], placeholder = "faasr/github-actions-tidyverse"),
         textInput("func_gh_repo", "Repository/Path, where the function is stored:", value = unretrieve(json$FunctionGitRepo[[input$func_name]]), placeholder = "username/reponame, https://url.git"),
