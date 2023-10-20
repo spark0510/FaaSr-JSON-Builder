@@ -71,7 +71,8 @@ server <- function(input, output) {
             # if select1 is "General Configuration", give text inputs and select inputs.
             "General Configuration" = list(
               selectInput("function_invoke", "First Function to be executed:", names(json$FunctionList), selected=json$FunctionInvoke),
-              selectInput("logging_server", "Logging Server to leave logs:", names(json$DataStores), selected=json$LoggingServer),
+              selectInput("logging_data_server", "Logging Data Server to leave logs:", names(json$DataStores), selected=json$LoggingDataStore),
+              selectInput("default_data_server", "Default Data Server to be used in put/get/arrow/log:", names(json$DataStores), selected=json$DefaultDataStore),
               textInput("faasr_log", "Log file name(Optional, default=FaaSr):", value = json$FaaSrLog, placeholder = "FaaSr"),
               textInput("invocation_id", "InvocationID(Optional, must follow UUID format):", value = json$InvocationID, placeholder = exampleid),
               fluidRow(
@@ -351,7 +352,8 @@ server <- function(input, output) {
     json$FunctionInvoke <- input$function_invoke
     json$InvocationID <- input$invocation_id
     json$FaaSrLog <- input$faasr_log
-    json$LoggingServer <- input$logging_server
+    json$LoggingDataStore <- input$logging_data_server
+    json$DefaultDataStore <- input$default_data_server
     json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
     json_pretty <- jsonlite::prettify(json_source)
     json_data(json_pretty)
