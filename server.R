@@ -44,6 +44,11 @@ server <- function(input, output) {
     if (is.null(json$InvocationID)){
       json$InvocationID <- exampleid
     }
+
+    # set the default value for Log folder name: FaaSrLog
+    if (is.null(json$FaaSrLog)){
+      json$FaaSrLog <- "FaaSrLog"
+    }
     
     # no selection will return nothing
     if (is.null(input$select1))
@@ -71,9 +76,9 @@ server <- function(input, output) {
             # if select1 is "General Configuration", give text inputs and select inputs.
             "General Configuration" = list(
               selectInput("function_invoke", "First Function to be executed:", names(json$FunctionList), selected=json$FunctionInvoke),
-              selectInput("logging_data_server", "Logging Data Server to leave logs:", names(json$DataStores), selected=json$LoggingDataStore),
+              selectInput("logging_data_server", "Logging Data Server to leave logs:", c("None",names(json$DataStores)), selected=json$LoggingDataStore),
               selectInput("default_data_server", "Default Data Server to be used in put/get/arrow/log:", names(json$DataStores), selected=json$DefaultDataStore),
-              textInput("faasr_log", "Log file name(Optional, default=FaaSr):", value = json$FaaSrLog, placeholder = "FaaSr"),
+              textInput("faasr_log", "Log file name(Optional, default=FaaSrLog):", value = json$FaaSrLog, placeholder = "FaaSrLog"),
               textInput("invocation_id", "InvocationID(Optional, must follow UUID format):", value = json$InvocationID, placeholder = exampleid),
               fluidRow(
                 column(6,
@@ -115,7 +120,7 @@ server <- function(input, output) {
     return(
       list(
         selectInput("func_faas", "Function FaaS Server:", names(json$ComputeServers), selected = json$FunctionList[[input$func_name]]$FaaSServer),
-        textAreaInput("func_args", "Function Arguments:", value = unretrieve(json$FunctionList[[input$func_name]]$Arguments), placeholder = "arg1=input1.csv,\narg2:input2.csv", height = "100px", resize = "vertical"),
+        textAreaInput("func_args", "Function Arguments:", value = unretrieve(json$FunctionList[[input$func_name]]$Arguments), placeholder = "arg1=input1.csv,\narg2=input2.csv", height = "100px", resize = "vertical"),
         textInput("func_next", "Function Next Invoke:", value = unretrieve(json$FunctionList[[input$func_name]]$InvokeNext), placeholder = "F2, F3"),
         textInput("func_container", "Function's Action Container(Optional):", value= json$ActionContainers[[input$func_act]], placeholder = "faasr/github-actions-tidyverse"),
         textInput("func_gh_repo", "Repository/Path, where the function is stored:", value = unretrieve(json$FunctionGitRepo[[input$func_name]]), placeholder = "username/reponame, https://url.git"),
@@ -257,7 +262,8 @@ server <- function(input, output) {
     json$FunctionInvoke <- NULL
     json$InvocationID <- NULL
     json$FaaSrLog <- NULL
-    json$LoggingServer <- NULL
+    json$LoggingDataStore <- NULL
+    json$DefaultDataStore <- NULL
     json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
     json_pretty <- jsonlite::prettify(json_source)
     json_data(json_pretty)
@@ -352,7 +358,11 @@ server <- function(input, output) {
     json$FunctionInvoke <- input$function_invoke
     json$InvocationID <- input$invocation_id
     json$FaaSrLog <- input$faasr_log
-    json$LoggingDataStore <- input$logging_data_server
+    if (input$logging_data_server == "None"){
+      json$LoggingDataStore <- NULL
+    } else {
+      json$LoggingDataStore <- input$logging_data_server
+    }
     json$DefaultDataStore <- input$default_data_server
     json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
     json_pretty <- jsonlite::prettify(json_source)
@@ -480,7 +490,7 @@ server <- function(input, output) {
     fsm_logging <- NULL
     
     for (dataname in names(json$DataStores)) {
-      if (!is.null(json$LoggingServer) && dataname == json$LoggingServer){
+      if (!is.null(json$DefaultDataStore) && dataname == json$DefaultDataStore){
         fsm_logging <- paste0(dataname," [label=",dataname,"];")
       } else {
         fsm_data_name <- paste0(fsm_data_name,dataname," [label=",dataname,"];")
