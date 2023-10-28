@@ -418,7 +418,7 @@ server <- function(input, output) {
       val_list <- unlist(strsplit(strsplit(val, '\n')[[1]], ','))
       text_list <- list()
       for (text in val_list){
-        parts <- strsplit(text, ':|=')
+        parts <- strsplit(text, '=')
         if (length(parts[[1]])<2){
           text_trim <- trimws(text)
           text_list <- unlist(c(text_list, text_trim))
