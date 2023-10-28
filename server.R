@@ -482,9 +482,9 @@ server <- function(input, output) {
         bgcolor = LemonChiffon;
         color = LemonChiffon;
         label = 'Functions';
-        node[width=3, fixedsize=shape, fontsize=32, shape = doublecircle, style=filled, fontname=Helvetica, fillcolor=white, color=gray32];
+        node[width=3, fixedsize=false, fontsize=32, shape = doublecircle, style=filled, fontname=Helvetica, fillcolor=white, color=gray32];
         ",fsm_first_func,"
-        node[width=3, fixedsize=shape, fontsize=32, shape = circle, style=filled, fontname=Helvetica, fillcolor=white, color=white];
+        node[width=3, fixedsize=false, fontsize=32, shape = circle, style=filled, fontname=Helvetica, fillcolor=white, color=white];
         ",fsm_func_name,"
       };
       edge[color=black, arrowsize=1];
