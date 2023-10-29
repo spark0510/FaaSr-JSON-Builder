@@ -44,7 +44,7 @@ server <- function(input, output) {
     if (is.null(json$InvocationID)){
       json$InvocationID <- exampleid
     }
-
+    
     # set the default value for Log folder name: FaaSrLog
     if (is.null(json$FaaSrLog)){
       json$FaaSrLog <- "FaaSrLog"
@@ -58,7 +58,7 @@ server <- function(input, output) {
             # if select1 is "FunctionList", give a text input for func_name
             # and it calls ui5
             "Functions" = list(
-              textInput("func_name", "Function Name:", placeholder= "Initial_function_name"),
+              textInput("func_name", "Node Name:", placeholder= "Initial_node_name"),
               uiOutput("ui5")
             ),
             # if select1 is "Data Server", give a text input for data_name
@@ -102,7 +102,7 @@ server <- function(input, output) {
       list(
         # it shows a text input for func_act
         # it also calls ui2
-        textInput("func_act", "Function Action Name:", value= json$FunctionList[[input$func_name]]$Actionname, placeholder = "F1_Action_1"),
+        textInput("func_act", "Function Name:", value= json$FunctionList[[input$func_name]]$FunctionName, placeholder = "function_1"),
         uiOutput("ui2")
       )
     )
@@ -122,10 +122,10 @@ server <- function(input, output) {
         selectInput("func_faas", "Function FaaS Server:", names(json$ComputeServers), selected = json$FunctionList[[input$func_name]]$FaaSServer),
         textAreaInput("func_args", "Function Arguments:", value = unretrieve(json$FunctionList[[input$func_name]]$Arguments), placeholder = "arg1=input1.csv,\narg2=input2.csv", height = "100px", resize = "vertical"),
         textInput("func_next", "Function Next Invoke:", value = unretrieve(json$FunctionList[[input$func_name]]$InvokeNext), placeholder = "F2, F3"),
-        textInput("func_container", "Function's Action Container(Optional):", value= json$ActionContainers[[input$func_act]], placeholder = "faasr/github-actions-tidyverse"),
-        textInput("func_gh_repo", "Repository/Path, where the function is stored:", value = unretrieve(json$FunctionGitRepo[[input$func_name]]), placeholder = "username/reponame, https://url.git"),
-        textInput("func_gh_package", "Dependencies - Github Package for the function:", value = unretrieve(json$FunctionGitHubPackage[[input$func_name]]), placeholder = "username/package_reponame"),
-        textInput("func_cran_repo", "Dependencies - Repository/Path for the function:", value = unretrieve(json$FunctionCRANPackage[[input$func_name]]), placeholder = "CRAN_package_name, dplyr"),
+        textInput("func_container", "Function's Action Container(Optional):", value= json$ActionContainers[[input$func_name]], placeholder = "faasr/github-actions-tidyverse"),
+        textInput("func_gh_repo", "Repository/Path, where the function is stored:", value = unretrieve(json$FunctionGitRepo[[input$func_act]]), placeholder = "username/reponame, https://url.git"),
+        textInput("func_gh_package", "Dependencies - Github Package for the function:", value = unretrieve(json$FunctionGitHubPackage[[input$func_act]]), placeholder = "username/package_reponame"),
+        textInput("func_cran_repo", "Dependencies - Repository/Path for the function:", value = unretrieve(json$FunctionCRANPackage[[input$func_act]]), placeholder = "CRAN_package_name, dplyr"),
         fluidRow(
           column(6,
                  actionButton("func_apply", label = "Apply")),
@@ -209,10 +209,23 @@ server <- function(input, output) {
     if (is.null(func_name)){
       return()
     }
+    func_act <- json$FunctionList[[func_name]]$FunctionName
     json$FunctionList[[func_name]] <- NULL
-    json$FunctionCRANPackage[[func_name]] <- NULL
-    json$FunctionGitHubPackage[[func_name]] <-NULL
-    json$FunctionGitRepo[[func_name]] <- NULL
+    json$ActionContainers[[func_name]] <- NULL
+    func_set <- NULL
+    for (func in names(json$FunctionList)){
+      if (func != func_name){
+        func_set <- unique(c(func_set, json$FunctionList[[func]]$FunctionName))
+        if (func_name %in% json$FunctionList[[func]]$InvokeNext){
+          json$FunctionList[[func]]$InvokeNext <- json$FunctionList[[func]]$InvokeNext[json$FunctionList[[func]]$InvokeNext != func_name]
+        }
+      }
+    }
+    if (!func_act %in% func_set){
+      json$FunctionCRANPackage[[func_act]] <- NULL
+      json$FunctionGitHubPackage[[func_act]] <-NULL
+      json$FunctionGitRepo[[func_act]] <- NULL
+    }
     json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
     json_pretty <- jsonlite::prettify(json_source)
     json_data(json_pretty)
@@ -281,14 +294,14 @@ server <- function(input, output) {
     if (is.null(func_name)){
       return()
     }
-    json$FunctionList[[func_name]]$Actionname <- input$func_act
+    json$FunctionList[[func_name]]$FunctionName <- input$func_act
     json$FunctionList[[func_name]]$FaaSServer <- input$func_faas
     json$FunctionList[[func_name]]$Arguments <- retrieve(input$func_args)
     json$FunctionList[[func_name]]$InvokeNext <- retrieve(input$func_next)
-    json$ActionContainers[[input$func_act]] <- input$func_container
-    json$FunctionCRANPackage[[func_name]] <- retrieve(input$func_cran_repo)
-    json$FunctionGitHubPackage[[func_name]] <-retrieve(input$func_gh_package)
-    json$FunctionGitRepo[[func_name]] <- retrieve(input$func_gh_repo)
+    json$ActionContainers[[func_name]] <- input$func_container
+    json$FunctionCRANPackage[[input$func_act]] <- retrieve(input$func_cran_repo)
+    json$FunctionGitHubPackage[[input$func_act]] <-retrieve(input$func_gh_package)
+    json$FunctionGitRepo[[input$func_act]] <- retrieve(input$func_gh_repo)
     json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
     json_pretty <- jsonlite::prettify(json_source)
     json_data(json_pretty)
@@ -405,7 +418,7 @@ server <- function(input, output) {
       val_list <- unlist(strsplit(strsplit(val, '\n')[[1]], ','))
       text_list <- list()
       for (text in val_list){
-        parts <- strsplit(text, ':|=')
+        parts <- strsplit(text, '=')
         if (length(parts[[1]])<2){
           text_trim <- trimws(text)
           text_list <- unlist(c(text_list, text_trim))
@@ -449,12 +462,14 @@ server <- function(input, output) {
     
     for (funcname in names(json$FunctionList)) {
       if (!is.null(json$FunctionInvoke) && funcname == json$FunctionInvoke){
-        fsm_first_func <- paste0(funcname, " [label=",funcname,"];")
+        fsm_first_func <- paste0(funcname, " [label=<",funcname," <br/> <font color='red'><font point-size='25'> ",json$FunctionList[[funcname]]$FunctionName,"</font></font>>];")
       } else{
-        fsm_func_name <- paste0(fsm_func_name,funcname," [label=",funcname,"];")
+        fsm_func_name <- paste0(fsm_func_name,funcname, " [label=<",funcname," <br/> <font color='red'><font point-size='25'> ",json$FunctionList[[funcname]]$FunctionName,"</font></font>>];")
       }
       for (next_func in json$FunctionList[[funcname]]$InvokeNext){
-        fsm_func_edge <- paste0(fsm_func_edge,funcname,"->",next_func,";")
+        if (next_func %in% names(json$FunctionList)){
+          fsm_func_edge <- paste0(fsm_func_edge,funcname,"->",next_func,";")
+        }
       }
     }
     
@@ -467,9 +482,9 @@ server <- function(input, output) {
         bgcolor = LemonChiffon;
         color = LemonChiffon;
         label = 'Functions';
-        node[width=3, fixedsize=shape, fontsize=32, shape = doublecircle, style=filled, fontname=Helvetica, fillcolor=white, color=gray32];
+        node[width=3, fixedsize=false, fontsize=32, shape = doublecircle, style=filled, fontname=Helvetica, fillcolor=white, color=gray32];
         ",fsm_first_func,"
-        node[width=3, fixedsize=shape, fontsize=32, shape = circle, style=filled, fontname=Helvetica, fillcolor=white, color=white];
+        node[width=3, fixedsize=false, fontsize=32, shape = circle, style=filled, fontname=Helvetica, fillcolor=white, color=white];
         ",fsm_func_name,"
       };
       edge[color=black, arrowsize=1];
@@ -549,7 +564,7 @@ server <- function(input, output) {
   observe({
     req(input$fsm_func_click)
     new_func <- input$fsm_func_click$nodeValues[[1]]
-    updateTextInput(inputId="func_name", value=new_func)
+    updateTextInput(inputId="func_name", value=trimws(new_func, "right"))
     updateSelectInput(inputId="select1", selected="Functions")
   })
   observe({
