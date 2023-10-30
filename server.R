@@ -175,7 +175,7 @@ server <- function(input, output) {
           condition = "input.faas_type == 'GitHubActions'",
           textInput("faas_gh_user", "GitHubActions User name:", value = json$ComputeServers[[input$faas_name]]$UserName, placeholder = "user_name"),
           textInput("faas_gh_repo", "GitHubActions Action Repository name:", value = json$ComputeServers[[input$faas_name]]$ActionRepoName, placeholder = "repo_name"),
-          textInput("faas_gh_ref", "GitHubActions Branch/Ref(Optional, default=main):", value = json$ComputeServers[[input$faas_name]]$Ref, placeholder = "main")
+          textInput("faas_gh_ref", "GitHubActions Branch:", value = json$ComputeServers[[input$faas_name]]$Branch, placeholder = "main")
         ),
         conditionalPanel(
           condition = "input.faas_type == 'Lambda'",
@@ -323,7 +323,7 @@ server <- function(input, output) {
            "GitHubActions"={
              json$ComputeServers[[faas_name]]$UserName <- input$faas_gh_user
              json$ComputeServers[[faas_name]]$ActionRepoName <- input$faas_gh_repo
-             json$ComputeServers[[faas_name]]$Ref <- input$faas_gh_ref
+             json$ComputeServers[[faas_name]]$Branch <- input$faas_gh_ref
            },
            "Lambda"={
              json$ComputeServers[[faas_name]]$Region <- input$faas_ld_region
