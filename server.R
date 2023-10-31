@@ -58,7 +58,7 @@ server <- function(input, output) {
             # if select1 is "FunctionList", give a text input for func_name
             # and it calls ui5
             "Functions" = list(
-              textInput("func_name", "Node Name:", placeholder= "Initial_node_name"),
+              textInput("func_name", "Action Name:", placeholder= "Action_1"),
               uiOutput("ui5")
             ),
             # if select1 is "Data Server", give a text input for data_name
@@ -121,7 +121,7 @@ server <- function(input, output) {
       list(
         selectInput("func_faas", "Function FaaS Server:", names(json$ComputeServers), selected = json$FunctionList[[input$func_name]]$FaaSServer),
         textAreaInput("func_args", "Function Arguments:", value = unretrieve(json$FunctionList[[input$func_name]]$Arguments), placeholder = "arg1=input1.csv,\narg2=input2.csv", height = "100px", resize = "vertical"),
-        textInput("func_next", "Function Next Invoke:", value = unretrieve(json$FunctionList[[input$func_name]]$InvokeNext), placeholder = "F2, F3"),
+        textInput("func_next", "Next Actions to Invoke:", value = unretrieve(json$FunctionList[[input$func_name]]$InvokeNext), placeholder = "Action_2, Action_3"),
         textInput("func_container", "Function's Action Container(Optional):", value= json$ActionContainers[[input$func_name]], placeholder = "faasr/github-actions-tidyverse"),
         textInput("func_gh_repo", "Repository/Path, where the function is stored:", value = unretrieve(json$FunctionGitRepo[[input$func_act]]), placeholder = "username/reponame, https://url.git"),
         textInput("func_gh_package", "Dependencies - Github Package for the function:", value = unretrieve(json$FunctionGitHubPackage[[input$func_act]]), placeholder = "username/package_reponame"),
@@ -175,7 +175,7 @@ server <- function(input, output) {
           condition = "input.faas_type == 'GitHubActions'",
           textInput("faas_gh_user", "GitHubActions User name:", value = json$ComputeServers[[input$faas_name]]$UserName, placeholder = "user_name"),
           textInput("faas_gh_repo", "GitHubActions Action Repository name:", value = json$ComputeServers[[input$faas_name]]$ActionRepoName, placeholder = "repo_name"),
-          textInput("faas_gh_ref", "GitHubActions Branch/Ref(Optional, default=main):", value = json$ComputeServers[[input$faas_name]]$Ref, placeholder = "main")
+          textInput("faas_gh_ref", "GitHubActions Branch:", value = json$ComputeServers[[input$faas_name]]$Branch, placeholder = "main")
         ),
         conditionalPanel(
           condition = "input.faas_type == 'Lambda'",
@@ -323,7 +323,7 @@ server <- function(input, output) {
            "GitHubActions"={
              json$ComputeServers[[faas_name]]$UserName <- input$faas_gh_user
              json$ComputeServers[[faas_name]]$ActionRepoName <- input$faas_gh_repo
-             json$ComputeServers[[faas_name]]$Ref <- input$faas_gh_ref
+             json$ComputeServers[[faas_name]]$Branch <- input$faas_gh_ref
            },
            "Lambda"={
              json$ComputeServers[[faas_name]]$Region <- input$faas_ld_region
