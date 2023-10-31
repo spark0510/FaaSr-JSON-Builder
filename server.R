@@ -58,7 +58,7 @@ server <- function(input, output) {
             # if select1 is "FunctionList", give a text input for func_name
             # and it calls ui5
             "Functions" = list(
-              textInput("func_name", "Action Name:", placeholder= "Initial_action_name"),
+              textInput("func_name", "Action Name:", placeholder= "Action_1"),
               uiOutput("ui5")
             ),
             # if select1 is "Data Server", give a text input for data_name
@@ -121,7 +121,7 @@ server <- function(input, output) {
       list(
         selectInput("func_faas", "Function FaaS Server:", names(json$ComputeServers), selected = json$FunctionList[[input$func_name]]$FaaSServer),
         textAreaInput("func_args", "Function Arguments:", value = unretrieve(json$FunctionList[[input$func_name]]$Arguments), placeholder = "arg1=input1.csv,\narg2=input2.csv", height = "100px", resize = "vertical"),
-        textInput("func_next", "Next Actions to Invoke:", value = unretrieve(json$FunctionList[[input$func_name]]$InvokeNext), placeholder = "F2, F3"),
+        textInput("func_next", "Next Actions to Invoke:", value = unretrieve(json$FunctionList[[input$func_name]]$InvokeNext), placeholder = "Action_2, Action_3"),
         textInput("func_container", "Function's Action Container(Optional):", value= json$ActionContainers[[input$func_name]], placeholder = "faasr/github-actions-tidyverse"),
         textInput("func_gh_repo", "Repository/Path, where the function is stored:", value = unretrieve(json$FunctionGitRepo[[input$func_act]]), placeholder = "username/reponame, https://url.git"),
         textInput("func_gh_package", "Dependencies - Github Package for the function:", value = unretrieve(json$FunctionGitHubPackage[[input$func_act]]), placeholder = "username/package_reponame"),
