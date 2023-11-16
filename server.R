@@ -2,6 +2,7 @@ library("shiny")
 library("DiagrammeR")
 library("shinyjs")
 library("shinyWidgets")
+library("shinyvalidate")
 
 server <- function(input, output, session) {
   iv <- InputValidator$new()
