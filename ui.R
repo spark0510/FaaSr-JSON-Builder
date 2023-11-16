@@ -1,8 +1,12 @@
 library("shiny")
 library("DiagrammeR")
+library("shinyjs")
+library("shinyWidgets")
+library("shinyvalidate")
 
 # this is for ui
 ui <- fluidPage(
+  shinyjs::useShinyjs(), 
   fluidRow(
     # put a photo on the left top corner
     column(6, titlePanel(title=span(img(height=40, width=40, src="faasr_logo.jpg"), "FaaSr: JSON BUILDER"))),
@@ -45,7 +49,9 @@ ui <- fluidPage(
         column(2, br()),
         column(4, 
                h5(HTML("<b>Download JSON File</b>")),
-               downloadButton("downjson", "Download JSON")
+               div(id="dwnbutton", 
+                   downloadButton("downjson", "Download", onclick = "Shiny.setInputValue('dwnClicked', true, {priority:'event'});")
+               ),
         )
       )
     ), wellPanel(
