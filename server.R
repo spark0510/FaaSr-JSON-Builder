@@ -1,10 +1,13 @@
 library("shiny")
 library("DiagrammeR")
+library("shinyjs")
+library("shinyWidgets")
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  iv <- InputValidator$new()
   # json_data will be reactive
   json_data <- reactiveVal(NULL)  
-  
+
   # if there's input, set the json_data with given json file.
   observe({
     if (!is.null(input$file1)) {
@@ -59,19 +62,40 @@ server <- function(input, output) {
             # and it calls ui5
             "Functions" = list(
               textInput("func_name", "Action Name:", placeholder= "Action_1"),
-              uiOutput("ui5")
+              uiOutput("ui5"),
+              fluidRow(
+                column(6,
+                       actionButton("func_apply", label = "Apply", disabled="disabled")),
+                column(6,
+                       div(style = "position:absolute;right:1em;", 
+                           actionButton("func_delete", label = "Delete")))
+              )
             ),
             # if select1 is "Data Server", give a text input for data_name
             # and it calls ui3
             "Data Server" = list(
               textInput("data_name", "Data Server Name:", placeholder = "Initial_data_server_name"),
-              uiOutput("ui3")
+              uiOutput("ui3"),
+              fluidRow(
+                column(6,
+                       actionButton("data_apply", label = "Apply", disabled="disabled")),
+                column(6,
+                       div(style = "position:absolute;right:1em;", 
+                           actionButton("data_delete", label = "Delete")))
+              )
             ),
             # if select1 is "FaaS Server", give a text input for faas_name
             # and it calls ui4
             "FaaS Server" = list(
               textInput("faas_name", "FaaS Server Name:", placeholder = "Initial_faas_server_name"),
-              uiOutput("ui4")
+              uiOutput("ui4"),
+              fluidRow(
+                column(6,
+                       actionButton("faas_apply", label = "Apply", disabled="disabled")),
+                column(6,
+                       div(style = "position:absolute;right:1em;", 
+                           actionButton("faas_delete", label = "Delete")))
+              )
             ),
             # if select1 is "General Configuration", give text inputs and select inputs.
             "General Configuration" = list(
@@ -82,7 +106,7 @@ server <- function(input, output) {
               textInput("invocation_id", "InvocationID(Optional, must follow UUID format):", value = json$InvocationID, placeholder = exampleid),
               fluidRow(
                 column(6,
-                       actionButton("gen_apply", label = "Apply")),
+                       actionButton("gen_apply", label = "Apply", disabled="disabled")),
                 column(6,
                        div(style = "position:absolute;right:1em;", 
                            actionButton("gen_delete", label = "Delete")))
@@ -125,14 +149,7 @@ server <- function(input, output) {
         textInput("func_container", "Function's Action Container(Optional):", value= json$ActionContainers[[input$func_name]], placeholder = "faasr/github-actions-tidyverse"),
         textInput("func_gh_repo", "Repository/Path, where the function is stored:", value = unretrieve(json$FunctionGitRepo[[input$func_act]]), placeholder = "username/reponame, https://url.git"),
         textInput("func_gh_package", "Dependencies - Github Package for the function:", value = unretrieve(json$FunctionGitHubPackage[[input$func_act]]), placeholder = "username/package_reponame"),
-        textInput("func_cran_repo", "Dependencies - Repository/Path for the function:", value = unretrieve(json$FunctionCRANPackage[[input$func_act]]), placeholder = "CRAN_package_name, dplyr"),
-        fluidRow(
-          column(6,
-                 actionButton("func_apply", label = "Apply")),
-          column(6,
-                 div(style = "position:absolute;right:1em;", 
-                     actionButton("func_delete", label = "Delete")))
-        )
+        textInput("func_cran_repo", "Dependencies - Repository/Path for the function:", value = unretrieve(json$FunctionCRANPackage[[input$func_act]]), placeholder = "CRAN_package_name, dplyr")
       )
     )
   })
@@ -149,14 +166,7 @@ server <- function(input, output) {
         textInput("data_endpoint", "Data Server Endpoint(optional for s3):", value = json$DataStores[[input$data_name]]$Endpoint, placeholder = "https://play.min.io"),
         textInput("data_bucket", "Data Server Bucket:", value = json$DataStores[[input$data_name]]$Bucket, placeholder = "my_bucket"),
         textInput("data_region", "Data Server Region (optional for minio):", value = json$DataStores[[input$data_name]]$Region, placeholder = "us-east-1"),
-        textInput("data_writable", "Data Server Writable permission:", value = json$DataStores[[input$data_name]]$Writable, placeholder = "TRUE"),
-        fluidRow(
-          column(6,
-                 actionButton("data_apply", label = "Apply")),
-          column(6,
-                 div(style = "position:absolute;right:1em;", 
-                     actionButton("data_delete", label = "Delete")))
-        )
+        textInput("data_writable", "Data Server Writable permission:", value = json$DataStores[[input$data_name]]$Writable, placeholder = "TRUE")
       )
     )
   })
@@ -183,16 +193,9 @@ server <- function(input, output) {
         ),
         conditionalPanel(
           condition = "input.faas_type == 'OpenWhisk'",
-          textInput("faas_ow_end", "OpenWhisk Endpoint(Optional, default=IBMcloud):", value = json$ComputeServers[[input$faas_name]]$Endpoint, placeholder = "https://00.00.00.00"),
+          textInput("faas_ow_end", "OpenWhisk Endpoint:", value = json$ComputeServers[[input$faas_name]]$Endpoint, placeholder = "https://00.00.00.00"),
           textInput("faas_ow_name", "OpenWhisk Namespace:", value = json$ComputeServers[[input$faas_name]]$Namespace, placeholder = "namespace_name"),
           textInput("faas_ow_region", "OpenWhisk Region:", value = json$ComputeServers[[input$faas_name]]$Region, placeholder = "us-west")
-        ),
-        fluidRow(
-          column(6,
-                 actionButton("faas_apply", label = "Apply")),
-          column(6,
-                 div(style = "position:absolute;right:1em;", 
-                     actionButton("faas_delete", label = "Delete")))
         )
       )
     )
@@ -206,8 +209,11 @@ server <- function(input, output) {
       json <- list()
     }
     func_name <- input$func_name
-    if (is.null(func_name)){
+    if (is.null(func_name) || func_name == ""){
       return()
+    }
+    if (func_name == json$FunctionInvoke){
+      json$FunctionInvoke <- NULL
     }
     func_act <- json$FunctionList[[func_name]]$FunctionName
     json$FunctionList[[func_name]] <- NULL
@@ -239,7 +245,7 @@ server <- function(input, output) {
       json <- list()
     }
     faas_name <- input$faas_name
-    if (is.null(faas_name)){
+    if (is.null(faas_name) || faas_name == ""){
       return()
     }
     json$ComputeServers[[faas_name]] <- NULL
@@ -256,8 +262,15 @@ server <- function(input, output) {
       json <- list()
     }
     data_name <- input$data_name
-    if (is.null(data_name)){
+    if (is.null(data_name) || data_name == ""){
       return()
+    } 
+    data_name <- input$data_name
+    if (data_name == json$DefaultDataStore){
+      json$DefaultDataStore <- NULL
+    }
+    if (data_name == json$LoggingDataStore){
+      json$LoggingDataStore <- NULL
     }
     json$DataStores[[data_name]] <- NULL
     json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
@@ -305,6 +318,9 @@ server <- function(input, output) {
     json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
     json_pretty <- jsonlite::prettify(json_source)
     json_data(json_pretty)
+    
+    updateTextInput(inputId="func_name", value=func_name)
+    #updateSelectInput(inputId="select1", selected="Functions")
   })
   
   # if user pushes faas_apply button, it will save the selected and text inputs into the json.
@@ -579,4 +595,134 @@ server <- function(input, output) {
     updateTextInput(inputId="data_name", value=new_data)
     updateSelectInput(inputId="select1", selected="Data Server")
   })
+  
+  observe({
+    if (is.null(input$function_invoke) || is.null(input$default_data_server)){
+      disable("gen_apply")
+    } else if (input$function_invoke == "" || input$default_data_server == ""){
+      disable("gen_apply")
+    } else {
+      enable("gen_apply")
+    }
+  })
+  
+  # observe({
+  #   if (!is.null(json_data())) {
+  #     json <- jsonlite::fromJSON(json_data())
+  #     if (is.null(json$FunctionInvoke) || is.null(json$DefaultDataStore)){
+  #       disable("downjson")
+  #       runjs("$('#dwnbutton').attr('title', 'JSON isn't complete);")
+  #     } else {
+  #       enable("downjson")
+  #       runjs("$('#dwnbutton').removeAttr('title');")
+  #     }
+  #   } else{
+  #     disable("downjson")
+  #     runjs("$('#dwnbutton').attr('title', 'JSON isn't complete);")
+  #   }
+  # })
+  
+  observe({
+    if (is.null(input$func_name) || is.null(input$func_faas) || is.null(input$func_act)){
+      disable("func_apply")
+    } else if (input$func_name == "" || input$func_faas == "" || input$func_act == ""){
+      disable("func_apply")
+    } else {
+      shinyjs::enable("func_apply")
+    }
+  })
+  
+  observe({
+    if (is.null(input$faas_type)){
+      return()
+    } else{
+      if (input$faas_type == "GitHubActions"){
+        if (is.null(input$faas_name) || is.null(input$faas_gh_user) || is.null(input$faas_gh_repo) || is.null(input$faas_gh_ref)){
+          disable("faas_apply")
+        } else if (input$faas_name == "" || input$faas_gh_user == "" || input$faas_gh_repo == "" || input$faas_gh_ref == ""){
+          disable("faas_apply")
+        } else {
+          shinyjs::enable("faas_apply")
+        }
+      } else if (input$faas_type == "OpenWhisk"){
+        if (is.null(input$faas_name) || is.null(input$faas_ow_end) || is.null(input$faas_ow_name) || is.null(input$faas_ow_region)){
+          disable("faas_apply")
+        } else if (input$faas_name == "" || input$faas_ow_end == "" || input$faas_ow_name == "" || input$faas_ow_region == ""){
+          disable("faas_apply")
+        } else {
+          shinyjs::enable("faas_apply")
+        }
+      } else if (input$faas_type == "Lambda"){
+        if (is.null(input$faas_name) || is.null(input$faas_ld_region)){
+          disable("faas_apply")
+        } else if (input$faas_name == "" || input$faas_ld_region == ""){
+          disable("faas_apply")
+        } else {
+          shinyjs::enable("faas_apply")
+        }
+      }
+    }
+  })
+  
+  observe({
+    if (is.null(input$data_name) || is.null(input$data_bucket) || is.null(input$data_writable)){
+      disable("data_apply")
+    } else if (input$data_name == "" || input$data_bucket == "" || input$data_writable == ""){
+      disable("data_apply")
+    } else {
+      shinyjs::enable("data_apply")
+    }
+  })
+  
+  test <- reactiveVal("JSON format incomplete")  
+  observeEvent(json_data(), {
+    json <- jsonlite::fromJSON(json_data())
+    if(is.null(json$FunctionInvoke)){
+      test("First Function is required")
+      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
+    } else if(is.null(json$DefaultDataStore)){
+      test("Default Data server is required")
+      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
+    } else if(length(names(json$ComputeServer))==0){
+      test("At least one faas server is required")
+      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
+    } else if(length(names(json$DataStore))==0){
+      test("At least one data server is required")
+      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
+    } else if(length(names(json$FunctionList))==0){
+      test("At least one function is required")
+      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
+    }else{
+      test(NULL)
+      runjs("$('#dwnbutton').off('click.x');")
+    }
+  })
+
+  observeEvent(input[["dwnClicked"]], {
+    if(!is.null(test())){
+      sendSweetAlert(
+        title = "JSON incomplete!",
+        text = test(),
+        type = "error"
+      )
+    }
+  })
+  
+  iv$add_rule("func_name", sv_required())
+  iv$add_rule("func_act", sv_required())
+  iv$add_rule("func_type", sv_required())
+  iv$add_rule("faas_name", sv_required())
+  iv$add_rule("faas_gh_user", sv_required())
+  iv$add_rule("faas_gh_repo", sv_required())
+  iv$add_rule("faas_gh_ref", sv_required())
+  iv$add_rule("faas_ow_end", sv_required())
+  iv$add_rule("faas_ow_name", sv_required())
+  iv$add_rule("faas_ow_region", sv_required())
+  iv$add_rule("faas_ld_region", sv_required())
+  iv$add_rule("data_name", sv_required())
+  iv$add_rule("data_bucket", sv_required())
+  iv$add_rule("data_writable", sv_required())
+  iv$enable()
 }
+
+
