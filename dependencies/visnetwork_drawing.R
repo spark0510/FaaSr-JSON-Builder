@@ -1,5 +1,5 @@
-#path_to_images <- "https://raw.githubusercontent.com/spark0510/FaaSr-JSON-Builder/branch4/www/"
-path_to_images <- ""
+path_to_images <- "https://raw.githubusercontent.com/spark0510/FaaSr-JSON-Builder/branch4/www/"
+#path_to_images <- ""
 ow_logo_black <- "ow_dark.png"
 ow_logo_white <- "ow.png"
 
@@ -16,6 +16,8 @@ vis_fig_func <- function(fsm_func_name, fsm_func_edge){
               shapeProperties = list(useBorderWithImage = TRUE)) %>%
     visGroups(groupname = "ld", shape = "icon", 
               icon = list(code = "f375", size = 50, color="skyblue")) %>%
+    visGroups(groupname = "undef", shape = "icon", 
+              icon = list(code = "f127", size = 50, color="skyblue")) %>%
     visGroups(groupname = "gh_first", shape = "icon", 
               icon = list(code = "f092", size = 65, color="#24a0ed")) %>%
     visGroups(groupname = "ow_first", shape = "image", 
@@ -44,6 +46,8 @@ vis_fig_func_select <- function(fsm_func_name, fsm_func_edge){
               image=paste0(path_to_images, ow_logo_white), size=30, 
               color=list(border="skyblue", background="skyblue", highlight=list(background="skyblue", border="skyblue")),
               shapeProperties = list(useBorderWithImage = TRUE)) %>%
+    visGroups(groupname = "undef_selected", shape = "icon", 
+              icon = list(code = "f127", size = 50, color="skyblue")) %>%
     visGroups(groupname = "ld_selected", shape = "icon", 
               icon = list(code = "f375", size = 50, color="skyblue")) %>%
     visGroups(groupname = "gh_not", shape = "icon", 
@@ -54,6 +58,8 @@ vis_fig_func_select <- function(fsm_func_name, fsm_func_edge){
               shapeProperties = list(useBorderWithImage = TRUE)) %>%
     visGroups(groupname = "ld_not", shape = "icon", 
               icon = list(code = "f375", size = 50, color="#cfcfcf")) %>%
+    visGroups(groupname = "undef_not", shape = "icon", 
+              icon = list(code = "f127", size = 50, color="#cfcfcf")) %>%
     addFontAwesome() %>% 
     visOptions(highlightNearest = TRUE) %>%
     visHierarchicalLayout(direction = "LR") %>%
