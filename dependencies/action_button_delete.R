@@ -3,7 +3,10 @@
 ob_func_delete <- function(input, output, session, json){
   func_name <- input$func_name
   if (is.null(func_name) || func_name == ""){
-    return()
+    return(jsonlite::toJSON(json, auto_unbox=TRUE, pretty=TRUE))
+  }
+  if (!func_name %in% names(json$FunctionList)){
+    return(jsonlite::toJSON(json, auto_unbox=TRUE, pretty=TRUE))
   }
   if (func_name == json$FunctionInvoke){
     json$FunctionInvoke <- NULL
@@ -34,7 +37,10 @@ ob_func_delete <- function(input, output, session, json){
 ob_faas_delete <- function(input, output, session, json){
   faas_name <- input$faas_name
   if (is.null(faas_name) || faas_name == ""){
-    return()
+    return(jsonlite::toJSON(json, auto_unbox=TRUE, pretty=TRUE))
+  }
+  if (!faas_name %in% names(json$ComputeServers)){
+    return(jsonlite::toJSON(json, auto_unbox=TRUE, pretty=TRUE))
   }
   json$ComputeServers[[faas_name]] <- NULL
   json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
@@ -46,8 +52,11 @@ ob_faas_delete <- function(input, output, session, json){
 ob_data_delete <- function(input, output, session, json){
   data_name <- input$data_name
   if (is.null(data_name) || data_name == ""){
-    return()
-  } 
+    return(jsonlite::toJSON(json, auto_unbox=TRUE, pretty=TRUE))
+  }
+  if (!data_name %in% names(json$DataStores)){
+    return(jsonlite::toJSON(json, auto_unbox=TRUE, pretty=TRUE))
+  }
   data_name <- input$data_name
   if (data_name == json$DefaultDataStore){
     json$DefaultDataStore <- NULL
@@ -70,5 +79,7 @@ ob_gen_delete <- function(input, output, session, json){
   json$DefaultDataStore <- NULL
   json_source <- jsonlite::toJSON(json, auto_unbox=TRUE)
   json_pretty <- jsonlite::prettify(json_source)
+  
+  return(json_pretty)
 }
 
