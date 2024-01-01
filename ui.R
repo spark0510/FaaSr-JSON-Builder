@@ -1,8 +1,13 @@
 library("shiny")
-library("DiagrammeR")
+library("visNetwork")
+library("shinyjs")
+library("shinyWidgets")
+library("jsonlite")
+
 
 # this is for ui
 ui <- fluidPage(
+  shinyjs::useShinyjs(), 
   fluidRow(
     # put a photo on the left top corner
     column(6, titlePanel(title=span(img(height=40, width=40, src="faasr_logo.jpg"), "FaaSr: JSON BUILDER"))),
@@ -45,20 +50,24 @@ ui <- fluidPage(
         column(2, br()),
         column(4, 
                h5(HTML("<b>Download JSON File</b>")),
-               downloadButton("downjson", "Download JSON")
+               div(id="dwnbutton", 
+                   downloadButton("downjson", "Download", onclick = "Shiny.setInputValue('dwnClicked', true, {priority:'event'});")
+               ),
         )
       )
     ), wellPanel(
       # show the diagrams.
       fluidRow(
-        column(12, grVizOutput("fsm_func", height="50%", width="100%"),
+        column(12, 
+               visNetworkOutput("fsm_func", height= "350px", width="100%"),
                br()),
       ),
       fluidRow(
-        column(6, grVizOutput("fsm_data", height="10%", width="70%")),
-        column(6, grVizOutput("fsm_faas", height="10%", width="70%"))
+        column(6, visNetworkOutput("fsm_data", height= "150px", width="100%")),
+        column(6, visNetworkOutput("fsm_faas", height= "150px", width="100%"))
       )
     )
     )
   )
 )
+
