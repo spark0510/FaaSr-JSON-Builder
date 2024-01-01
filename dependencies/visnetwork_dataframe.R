@@ -46,15 +46,25 @@ vis_df_func <- function(input, output, session, json){
   fsm_func_name <- data.frame()
   nb <- length(names(json$FunctionList))
   
+  if (nb==0){
+    return(list(name=fsm_func_name, edge=fsm_func_edge))
+  }
+  
   for (funcname in names(json$FunctionList)) {
     stack <- list()
     len_val <- list()
     dfs(funcname, funcname, 0)
     level <- max(unlist(len_val))
+    type <- json$ComputeServers[[json$FunctionList[[funcname]]$FaaSServer]]$FaaSType
+    
+    
     
     if (!is.null(json$FunctionInvoke) && funcname == json$FunctionInvoke){
-      type <- json$ComputeServers[[json$FunctionList[[funcname]]$FaaSServer]]$FaaSType
-      if (type =="GitHubActions"){
+      if (is.null(type)){
+        new_node <- data.frame(id=funcname, label=paste0(funcname, "\n", json$FunctionList[[funcname]]$FunctionName),
+                               group="undef", level=level, server="undef")
+        fsm_func_name <- rbind(fsm_func_name, new_node)
+      } else if (type =="GitHubActions"){
         new_node <- data.frame(id=funcname, label=paste0(funcname, "\n", json$FunctionList[[funcname]]$FunctionName),
                                group="gh_first", level=level, server=json$FunctionList[[funcname]]$FaaSServer)
         fsm_func_name <- rbind(fsm_func_name, new_node)
@@ -68,8 +78,11 @@ vis_df_func <- function(input, output, session, json){
         fsm_func_name <- rbind(fsm_func_name, new_node)
       }
     } else{
-      type <- json$ComputeServers[[json$FunctionList[[funcname]]$FaaSServer]]$FaaSType
-      if (type =="GitHubActions"){
+      if (is.null(type)){
+        new_node <- data.frame(id=funcname, label=paste0(funcname, "\n", json$FunctionList[[funcname]]$FunctionName),
+                               group="undef", level=level, server="undef")
+        fsm_func_name <- rbind(fsm_func_name, new_node)
+      } else if (type =="GitHubActions"){
         new_node <- data.frame(id=funcname, label=paste0(funcname, "\n", json$FunctionList[[funcname]]$FunctionName),
                                group="gh", level=level, server=json$FunctionList[[funcname]]$FaaSServer)
         fsm_func_name <- rbind(fsm_func_name, new_node)
@@ -98,6 +111,11 @@ vis_df_func <- function(input, output, session, json){
 vis_df_data <- function(input, output, session, json){
   fsm_data_name <- data.frame()
   fsm_data_edge <- data.frame()
+  nb <- length(names(json$DataStores))
+  
+  if (nb==0){
+    return(list(name=fsm_data_name, edge=fsm_data_edge))
+  }
   
   for (dataname in names(json$DataStores)) {
     if (!is.null(json$DefaultDataStore) && dataname == json$DefaultDataStore){
@@ -129,6 +147,11 @@ vis_df_faas <- function(input, output, session, json){
   
   fsm_faas_name <- data.frame()
   fsm_faas_edge <- data.frame()
+  nb <- length(names(json$ComputeServers))
+  
+  if (nb==0){
+    return(list(name=fsm_faas_name, edge=fsm_faas_edge))
+  }
   
   for (faasname in names(json$ComputeServers)) {
     type <- json$ComputeServers[[faasname]]$FaaSType
@@ -171,6 +194,8 @@ vis_df_select_func <- function(fsm_func_name, new_nodes){
         fsm_func_name[fsm_func_name$id == ids, "group"] <- "gh_selected"
       } else if (group_name =="ld" || group_name == "ld_first"){
         fsm_func_name[fsm_func_name$id == ids, "group"] <- "ld_selected"
+      } else if (group_name =="undef"){
+        fsm_func_name[fsm_func_name$id == ids, "group"] <- "undef_selected"
       }
     } else {
       group_name <- fsm_func_name[fsm_func_name$id == ids, "group"]
@@ -180,6 +205,8 @@ vis_df_select_func <- function(fsm_func_name, new_nodes){
         fsm_func_name[fsm_func_name$id == ids, "group"] <- "gh_not"
       } else if (group_name =="ld" || group_name == "ld_first"){
         fsm_func_name[fsm_func_name$id == ids, "group"] <- "ld_not"
+      } else if (group_name =="undef"){
+        fsm_func_name[fsm_func_name$id == ids, "group"] <- "undef_not"
       }
     }
   }
