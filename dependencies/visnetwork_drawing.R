@@ -26,7 +26,7 @@ vis_fig_func <- function(fsm_func_name, fsm_func_edge){
               shapeProperties = list(useBorderWithImage = TRUE)) %>%
     visGroups(groupname = "ld_first", shape = "icon", 
               icon = list(code = "f375", size = 50, color="#24a0ed")) %>%
-    visEdges(arrows="to", color=list(color="skyblue", highlight="skyblue")) %>%
+    visEdges(arrows="to", color=list(color="skyblue", highlight="skyblue"), arrowStrikethrough = FALSE) %>%
     addFontAwesome() %>% 
     visHierarchicalLayout(direction = "LR") %>%
     visEvents(click = "function(fsm_func_name){
@@ -39,7 +39,7 @@ vis_fig_func_select <- function(fsm_func_name, fsm_func_edge){
   visNetwork(fsm_func_name, fsm_func_edge, width="150%", height="150%",
              main = list(text = "<b>Workflow</b>",
                          style = "color:black;font-size:15px;text-align:center;")) %>%
-    visEdges(arrows="to", color=list(color="#cfcfcf", highlight="skyblue")) %>%
+    visEdges(arrows="to", color=list(color="#cfcfcf", highlight="skyblue"), arrowStrikethrough = FALSE) %>%
     visGroups(groupname = "gh_selected", shape = "icon", 
               icon = list(code = "f092", size = 65, color="skyblue")) %>%
     visGroups(groupname = "ow_selected", shape = "image", 
