@@ -18,28 +18,37 @@ vis_df_func <- function(input, output, session, json){
     i=i
     # find target in the graph's successor. If it matches, there's a loop
     if (target %in% pre[[start]]) {
-      break
-    }
-    i <- i+1
-    if (length(pre[[start]])==0){
       len_val <<- c(len_val, i)
+      sendSweetAlert(
+        title = HTML('<div style="color: gray; font-size: 23px; text-align: center;">',
+                     'Loop Found!</div><br><div style="color: #FF5733;font-size: 15px;">Check the node:</div>'),
+        text = HTML('<span style="color: gray; font-size: 18px;">',target,'</span'),
+        type = "error",
+        html = TRUE
+      )
     } else {
-      # add start, marking as "visited"
-      stack <<- unique(c(stack, start))
-    }
-    
-    # set one of the successors as another "start"
-    for (func in pre[[start]]) {
-      
-      # if new "start" has been visited, do nothing
-      if (func %in% stack) {
-        NULL
-        # if not, keep checking the DAG.
+      i <- i+1
+      if (length(pre[[start]])==0){
+        len_val <<- c(len_val, i)
       } else {
+        # add start, marking as "visited"
+        stack <<- unique(c(stack, start))
+      }
+      
+      # set one of the successors as another "start"
+      for (func in pre[[start]]) {
         
-        dfs(func, target, i)
+        # if new "start" has been visited, do nothing
+        if (func %in% stack) {
+          NULL
+          # if not, keep checking the DAG.
+        } else {
+          
+          dfs(func, target, i)
+        }
       }
     }
+    
   }
   
   fsm_func_edge <- data.frame()
