@@ -30,7 +30,7 @@ unretrieve <- function(val){
 
 # this function is to convert the "a=b, c=d" form into the list
 retrieve <- function(val) {
-  if (!is.null(val)) {
+  if (!is.null(val) && length(val)!=0 && val !="") {
     val_list <- unlist(strsplit(strsplit(val, '\n')[[1]], ','))
     text_list <- list()
     for (text in val_list){
@@ -46,6 +46,6 @@ retrieve <- function(val) {
     }
     return(text_list)
   } else {
-    return(val)
+    return(NULL)
   }
 }
