@@ -26,13 +26,13 @@ ui <- fluidPage(
   fluidRow(
     # put a select input for selecting types.
     # it will call ui1
-    column(4, wellPanel(
+    column(3, wellPanel(
       selectInput("select1", "Select type:", c("FaaS Server", "Data Server", "Functions", "General Configuration")),
       br(),
       uiOutput("ui1")
     )
     ),
-    column(8, wellPanel(
+    column(9, wellPanel(
       fluidRow(
         # this is for upload button.
         column(4,
@@ -70,4 +70,3 @@ ui <- fluidPage(
     )
   )
 )
-
