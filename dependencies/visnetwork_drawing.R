@@ -94,7 +94,7 @@ vis_fig_faas <- function(fsm_faas_name, fsm_faas_edge){
 
 vis_fig_data <- function(fsm_data_name, fsm_data_edge){
   
-  visNetwork(fsm_data_name, data.frame(), width="100%",
+  visNetwork(fsm_data_name, fsm_data_edge, width="100%",
              main = list(text = "<b>Data Servers</b>",
                          style = "color:black;font-size:15px;text-align:center;")) %>%
     visGroups(groupname = "data_first", shape = "icon", 
