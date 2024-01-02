@@ -13,7 +13,7 @@ source("dependencies/action_button_apply.R")
 
 server <- function(input, output, session) {
   
-
+  
   
   ##################################################
   # JSON file upload/download/delete & Session close
@@ -303,7 +303,7 @@ server <- function(input, output, session) {
     } else{
       fsm_func_edge <- data.frame()
     }
-      
+    
     if (!is.null(graph_func_name)){
       fsm_func_name <- graph_func_name()
     } else{
@@ -396,7 +396,7 @@ server <- function(input, output, session) {
       vis_fig_func_select(fsm_func_name, fsm_func_edge)
     })
   })
-    
+  
   observe({
     # require faas node click
     req(input$faas_click)
@@ -452,134 +452,153 @@ server <- function(input, output, session) {
   ################################
   # This is a helper function.
   # Because of "get", this should reside in the "server.R"
-  js_module <- function(type, msg, name){
+  alert_js_module <- function(type, msg, name, on=TRUE){
     func <- get(type)
-    func(paste0(msg, " is required"))
-    runjs(paste0("$('#",name,"').on('click.x', function(e){e.preventDefault();});"))
+    func(msg)
+    if (on) {
+      runjs(paste0("$('#",name,"').on('click.x', function(e){e.preventDefault();});"))
+    } else {
+      runjs(paste0("$('#",name,"').off('click.x');"))
+    }
   } 
+  
+  alert_module <- function(title, text){
+    sendSweetAlert(
+      title = HTML('<div style="color: gray; font-size: 23px; text-align: center;">', title,
+                   'Configuration incomplete!</div><br><div style="color: #FF5733 ;', 
+                   'font-size: 15px; text-align: center;">Required:&nbsp</div>'),
+      text = HTML('<span style="color: gray; font-size: 18px;">',text,'</span'),
+      type = "error",
+      html = TRUE
+    )
+  }
   
   # Check general configuration requirements
   test_gen <- reactiveVal("General Configuration incomplete")
   observe({
+    gen_text <- NULL
     if (is.null(input$function_invoke) || input$function_invoke == ""){
-      js_module("test_gen", "First Function", "genapp")    
-    } else if (is.null(input$default_data_server) || input$default_data_server == ""){
-      js_module("test_gen", "Default Data Server", "genapp")  
+      gen_text <- paste(gen_text, "First Function<br>")
+    }
+    if (is.null(input$default_data_server) || input$default_data_server == ""){
+      gen_text <- paste(gen_text, "Default Data Server<br>")
+    }
+    
+    if (is.null(gen_text)) {
+      alert_js_module("test_gen", gen_text, "genapp", on=FALSE)
     } else {
-      test_gen(NULL)
-      runjs("$('#genapp').off('click.x');")
+      alert_js_module("test_gen", gen_text, "genapp")
     }
   })
   
   # Send general configuration warning message
   observeEvent(input[["gen_app"]], {
     if(!is.null(test_gen())){
-      sendSweetAlert(
-        title = "General Configuration incomplete!",
-        text = test_gen(),
-        type = "error"
-      )
+      alert_module("General", as.character(test_gen()))
     }
   })
   
   # Check Data server requirements
   test_data <- reactiveVal("Data Server Configuration incomplete")
   observe({
+    data_text <- NULL
     if (is.null(input$data_name) || input$data_name == ""){
-      js_module("test_data", "Data Server name", "dataapp")    
-    } else if (is.null(input$data_bucket) || input$data_bucket == ""){
-      js_module("test_data", "Data Server Bucket name", "dataapp")
-    } else if (is.null(input$data_writable) || input$data_writable == ""){
-      js_module("test_data", "Data Server permission", "dataapp")
+      data_text <- paste(data_text, "Data Server Name<br>")
+    } 
+    if (is.null(input$data_bucket) || input$data_bucket == ""){
+      data_text <- paste(data_text, "Data Server Bucket<br>")
+    } 
+    if (is.null(input$data_writable) || input$data_writable == ""){
+      data_text <- paste(data_text, "Data Server Permission<br>")
+    } 
+    
+    if (is.null(data_text)) {
+      alert_js_module("test_data", data_text, "dataapp", on=FALSE)
     } else {
-      test_data(NULL)
-      runjs("$('#dataapp').off('click.x');")
+      alert_js_module("test_data", data_text, "dataapp")
     }
   })
   
   # Send data stores configuration warning message
   observeEvent(input[["data_app"]], {
     if(!is.null(test_data())){
-      sendSweetAlert(
-        title = "Data Server Configuration incomplete!",
-        text = test_data(),
-        type = "error"
-      )
+      alert_module("Data Server", as.character(test_data()))
     }
   })
   
   # Check Functions requirements
   test_func <- reactiveVal("Function Configuration incomplete")
   observe({
+    func_text <- NULL
     if (is.null(input$func_name) || input$func_name == ""){
-      js_module("test_func", "Action name", "funcapp")    
-    } else if (is.null(input$func_act) || input$func_act == ""){
-      js_module("test_func", "Function name", "funcapp")
-    } else if (is.null(input$func_faas) || input$func_faas == ""){
-      js_module("test_func", "Function's FaaS Server", "funcapp")
+      func_text <- paste(func_text, "Action Name<br>")
+    } 
+    if (is.null(input$func_act) || input$func_act == ""){
+      func_text <- paste(func_text, "Function Name<br>")
+    } 
+    if (is.null(input$func_faas) || input$func_faas == ""){
+      func_text <- paste(func_text, "Function's FaaS Server<br>")
+    }
+    
+    if (is.null(func_text)) {
+      alert_js_module("test_func", func_text, "funcapp", on=FALSE)
     } else {
-      test_func(NULL)
-      runjs("$('#funcapp').off('click.x');")
+      alert_js_module("test_func", func_text, "funcapp")
     }
   })
   
   # Send functions configuration warning message
   observeEvent(input[["func_app"]], {
     if(!is.null(test_func())){
-      sendSweetAlert(
-        title = "Function Configuration incomplete!",
-        text = test_func(),
-        type = "error"
-      )
+      alert_module("Functions", as.character(test_func()))
     }
   })
   
   # Check FaaS server requirements
   test_faas <- reactiveVal("FaaS Server configuration incomplete")
   observe({
+    faas_text <- NULL
+    type <- input$faas_type
+    
     if (is.null(input$faas_name) || input$faas_name == ""){
-      js_module("test_faas", "FaaS Name", "faasapp")
-    } else if (is.null(input$faas_type) || input$faas_type == ""){
-      js_module("test_faas", "FaaS Type", "faasapp")     
-    } else {
-      type <- input$faas_type
+      faas_text <- paste(faas_text, "FaaS Name<br>")
+    } 
+    if (is.null(input$faas_type) || input$faas_type == ""){
+      faas_text <- paste(faas_text, "FaaS Type<br>")    
+    } else{
       if (type=="GitHubActions"){
         if (is.null(input$faas_gh_user) || input$faas_gh_user == ""){
-          js_module("test_faas", "Github User name", "faasapp")
-        } else if (is.null(input$faas_gh_repo) || input$faas_gh_repo == ""){
-          js_module("test_faas", "Github Repo name", "faasapp")
-        } else {
-          test_faas(NULL)
-          runjs("$('#faasapp').off('click.x');")
-        }
+          faas_text <- paste(faas_text, "Github User name<br>")
+        } 
+        if (is.null(input$faas_gh_repo) || input$faas_gh_repo == ""){
+          faas_text <- paste(faas_text, "Github Repo name<br>")
+        } 
       } else if (type == "OpenWhisk"){
         if (is.null(input$faas_ow_end) || input$faas_ow_end == ""){
-          js_module("test_faas", "Openwhisk endpoint", "faasapp")
-        } else if (is.null(input$faas_ow_name) || input$faas_ow_name == ""){
-          js_module("test_faas", "Openwhisk Namespace", "faasapp")
-        } else {
-          test_faas(NULL)
-          runjs("$('#faasapp').off('click.x');")
+          faas_text <- paste(faas_text, "OpenWhisk Endpoint<br>")
+        } 
+        if (is.null(input$faas_ow_name) || input$faas_ow_name == ""){
+          faas_text <- paste(faas_text, "Openwhisk Namespace<br>")
         }
       } else if (type == "Lambda"){
         if (is.null(input$faas_ld_region) || input$faas_ld_region == ""){
-          js_module("test_faas", "Lambda Region", "faasapp")
-        } else {
-          test_faas(NULL)
-          runjs("$('#faasapp').off('click.x');")
-        }
+          faas_text <- paste(faas_text, "Lambda Region<br>")
+        } 
       }
     }
+    
+    if (is.null(faas_text)) {
+      alert_js_module("test_faas", faas_text, "faasapp", on=FALSE)
+    } else {
+      alert_js_module("test_faas", faas_text, "faasapp")
+    }
+    
   })
   
   # Send faas servers configuration warning message
   observeEvent(input[["faas_app"]], {
     if(!is.null(test_faas())){
-      sendSweetAlert(
-        title = "FaaS Configuration incomplete!",
-        text = test_faas(),
-        type = "error"
-      )
+      alert_module("FaaS Server", as.character(test_faas()))
     }
   })
   
@@ -587,35 +606,36 @@ server <- function(input, output, session) {
   test <- reactiveVal("JSON format incomplete")  
   observeEvent(json_data(), {
     json <- jsonlite::fromJSON(json_data())
+    json_text <- NULL
+    
     if (is.null(json$FunctionInvoke) || json$FunctionInvoke == ""){
-      test("First Function is required")
-      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
-    } else if(is.null(json$DefaultDataStore) || json$DefaultDataStore == ""){
-      test("Default Data server is required")
-      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
-    } else if(length(names(json$ComputeServer))==0){
-      test("At least one faas server is required")
-      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
-    } else if(length(names(json$DataStore))==0){
-      test("At least one data server is required")
-      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
-    } else if(length(names(json$FunctionList))==0){
-      test("At least one function is required")
-      runjs("$('#dwnbutton').on('click.x', function(e){e.preventDefault();});")
-    }else{
-      test(NULL)
-      runjs("$('#dwnbutton').off('click.x');")
+      json_text <- paste(json_text, "First Function<br>")
+    } 
+    if (is.null(json$DefaultDataStore) || json$DefaultDataStore == ""){
+      json_text <- paste(json_text, "Default Data Server<br>")
+    } 
+    if (length(names(json$ComputeServer))==0){
+      json_text <- paste(json_text, "At least one FaaS Server<br>")
+    } 
+    if (length(names(json$DataStore))==0){
+      json_text <- paste(json_text, "At least one Data Server<br>")
+    } 
+    if (length(names(json$FunctionList))==0){
+      json_text <- paste(json_text, "At least one Function<br>")
     }
+    
+    if (is.null(json_text)) {
+      alert_js_module("test", json_text, "dwnbutton", on=FALSE)
+    } else {
+      alert_js_module("test", json_text, "dwnbutton")
+    }
+    
   })
   
   # Send download warning message
   observeEvent(input[["dwnClicked"]], {
     if(!is.null(test())){
-      sendSweetAlert(
-        title = "JSON incomplete!",
-        text = test(),
-        type = "error"
-      )
+      alert_module("JSON", as.character(test()))
     }
   })
 }
